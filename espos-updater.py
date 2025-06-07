@@ -12,7 +12,7 @@ import serial.tools.list_ports
 import webview
 import json
 
-# Configuración del repositorio
+# Querido lector de código, cambia estos valores según tengas configurado tu propio repositorio
 GITHUB_OWNER = 'espos-project'
 GITHUB_REPO  = 'espos'
 BIN_PATH     = 'latest.bin'
@@ -44,7 +44,6 @@ class Api:
         threading.Thread(target=self._workflow, daemon=True).start()
 
     def _workflow(self):
-        # 1) Serial
         self._log(f"🔌 Abriendo {self.port}@{BAUD_RATE}...")
         try:
             import serial
@@ -54,7 +53,6 @@ class Api:
         except Exception as e:
             return self._alert(f"Error serial: {e}")
 
-        # 2) Descarga .bin
         self._log("🔍 Descargando .bin de la última release...")
         try:
             api_url = f'https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest'
@@ -70,8 +68,6 @@ class Api:
             self._log("✅ Descarga completada.")
         except Exception as e:
             return self._alert(f"Error descarga: {e}")
-
-        # 3) Espera AP
         self.window.evaluate_js(
             "document.getElementById('waitModal').style.display='flex';"
         )
@@ -99,7 +95,6 @@ class Api:
             self._alert(f"Error upload: {e}")
 
     def _log(self, msg):
-        # Log status messages safely by prepending newline
         safe = msg.replace('`', '')
         message_json = json.dumps("\n" + safe)
         js = f"document.getElementById('status').innerText += {message_json};"
@@ -110,7 +105,6 @@ class Api:
         self.window.evaluate_js(f"alert({alert_json});")
 
 
-# HTML con footer casi transparente
 html = '''<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><title>ESPOS Updater</title>
@@ -159,5 +153,4 @@ if __name__ == '__main__':
     window = webview.create_window('ESPOS Updater', html=html, js_api=api)
     api.window = window
     window.events.loaded += api.init_ports
-    # Cambia gui a 'mshtml' o 'qt' si no quieres usar CEF
     webview.start(gui='chromium', debug=False)
